@@ -1,0 +1,62 @@
+文件的查找：whereis、locate、find
+相对来说，find查找的速度比较慢；因为whereis与locate是利用数据库来查找数据，所以相对比较快，而且并没有实际查询硬盘，比较节省时间。
+
+	* whereis(寻找特定文件)  whereis [-bmsu] 文件或目录名
+
+-b：只找二进制格式的文件
+-m：只找在说明文件manual路径下的文件
+-s：只找source源文件
+-u：查找不在上述三个选项当中的其他特殊文件
+
+	* locate      locate [-ir] keyword
+
+     -i：忽略大小写的差异
+     -r：后面可接正则表达式的显示方式
+因为Linux系统会将系统内的所有文件记录在一个数据库文件里面，二当使用whereis或locate时都会以此数据库文件的内容为准，因此，有时会找到已经删除的文件，而找不到最新的刚才创建的文件。
+ 
+
+	*    find    find [PATH] [option] [action]
+
+参数：
+1、与时间有关的参数：-atime、-ctime、-mtime
+（1）访问时间（-atime）：用户最近一次访问文件的时间；
+（2）修改时间（-mtime）：文件内容最后一次被修改的时间。
+（3）变化时间（-ctime）：文件元数据（metadata，例如权限或所有权）最后一次改变的时间。
+以-mtime为例：
+     -mtime n：n为数字，意义为在n天之前的“一天之内”被更改过的文件
+     -mtime +n：列出在n天之前（不含n天本身）被更改过的文件
+     -mtime -n：列出在n天之内（含n天本身）被更改过的文件
+     -mtime file：file为一个存在的文件，列出比file还要新的文件
+
+
+2、与用户或用户组名有关的参数
+     （1）-uid n：n为数字，是用户的账号ID，即UID，这个UID是记录在/etc/passwd里面的
+                          与账户名称相对应的数字
+     （2）-gid n：n为数字，是用户组名的账号ID，即GID，GID是记录在/etc/group中。
+     （3）-user name：name为用户名账号名称，例如：fucang
+     （4）-group name：name为用户组名，例如：user
+       （5）-nouser：寻找文件的所有者不存在/etc/passwd中的文件
+     （6）-nogroup：寻找文件的所有组不存在/etc/group中的文件
+
+
+
+3、与文件权限及名称有关的参数
+     （1）-name filename：查找文件名为filename的文件
+     （2）-size [+-]SIZE：查找比SIZE还要大（+）或小（-）的文件。
+               SIZE的规格：c：代表byte，k：代表1024bytes
+               eg：找比50KB还要大的文件，就是“find -size +50k”
+
+     （3）-type TYPE：查找文件的类型为TYPE的，类型主要有：
+                    一般正规文件（f）、设备文件（b、c）、目录（d）、
+                    连接文件（l）、socket（s）、FIFO（p）等
+     （4）-perm mode：查找文件权限“刚好等于”mode的文件，mode类似chmod的
+                                   属性值，eg：-rwxr-xr-x的属性值为0755
+     （5）-perm -mode：查找文件权限“必须全部包含mode的权限”的文件
+     （6）-perm +mode：查找文件权限“包含任一mode的权限”的文件，
+                       eg：我们查找-rwxr-xr-x，即-perm +755时，一个文件属性为-rw-------
+                              也会被列出来，因为它有-rw...
+4、其他操作
+     -exec command：command为其他命令，-exec后面可再接其他的命令来处
+                                 理查找的结果
+将find -perm 0664查找到的结果放入到{ }中并用ls -l这个结果
+     -print：将结果打印到屏幕上（这个操作是默认操作）
