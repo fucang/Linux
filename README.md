@@ -1,4 +1,9 @@
 # Linux
+
+数据结构：https://github.com/fucang/fucang.github.io
+
+剑指offer：https://github.com/fucang/-offer
+
 Linux是多用户、多任务环境的。
 Linux权限管理
 1、文件访问者的分类(人)  3 个为一组
