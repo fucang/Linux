@@ -4,6 +4,8 @@
 
 剑指offer：https://github.com/fucang/-offer
 
+查找命令：http://10740026.blog.51cto.com/10730026/1775291
+
 Linux是多用户、多任务环境的。
 Linux权限管理
 1、文件访问者的分类(人)  3 个为一组
