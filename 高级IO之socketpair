@@ -1,0 +1,86 @@
+/************************************************************************* 
+    > File Name: pair.c 
+    > Author: fucang_zxx 
+    > Mail: fucang_zxx@163.com  
+    > Created Time: Thu 28 Jul 2016 03:27:24 PM CST 
+ ************************************************************************/  
+  
+#include <stdio.h>  
+#include <string.h>  
+#include <stdlib.h>  
+#include <sys/types.h>  
+#include <sys/socket.h>  
+  
+int main()  
+{  
+    int fd[2];  
+    //创建双向管道  
+    int ret = socketpair(AF_LOCAL, SOCK_STREAM, 0, fd);  
+    if(ret < 0)  
+    {  
+        perror("socketpair");  
+        return 1;  
+    }  
+      
+    //创建子进程  
+    pid_t id = fork();  
+    if(id < 0)  
+    {  
+        //出错  
+        perror("fork");  
+        return 2;  
+    }  
+    else if(id == 0)  
+    {  
+        //child  
+        close(fd[0]);  
+        char buf[1024];  
+        while(1)  
+        {  
+            memset(buf, '\0', sizeof(buf));  
+            strcpy(buf, "hello father, i am child");  
+            write(fd[1], buf, strlen(buf));  
+            ssize_t _s = read(fd[1], buf, sizeof(buf) - 1);  
+            if(_s < 0)  
+            {  
+                perror("read");  
+                return 3;  
+            }  
+            else  
+            {  
+                buf[_s] = '\0';  
+                printf("father -> child:  %s\n", buf);  
+            }  
+            sleep(1);  
+        }  
+        close(fd[1]);  
+    }  
+    else  
+    {  
+        //father  
+        close(fd[1]);  
+        char buf[1025];  
+        while(1)  
+        {  
+            memset(buf, '\0', sizeof(buf));  
+            ssize_t _s = read(fd[0], buf, sizeof(buf) - 1);  
+            if(_s < 0)  
+            {  
+                perror("read");  
+                return 4;  
+            }  
+            else  
+            {  
+                buf[_s] = '\0';  
+                printf("child -> father:  %s\n", buf);  
+            }  
+            strcpy(buf, "hello child, i am father");  
+            write(fd[0], buf, strlen(buf));  
+            sleep(1);  
+        }  
+        close(fd[0]);  
+    }  
+    int status;  
+    waitpid(id, &status, WNOHANG);  
+    return 0;  
+}  
