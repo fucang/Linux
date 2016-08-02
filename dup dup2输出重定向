@@ -1,0 +1,122 @@
+/************************************************************************* 
+    > File Name: dup.c 
+    > Author: fucang_zxx 
+    > Mail: fucang_zxx@163.com  
+    > Created Time: Thu 28 Jul 2016 04:15:35 PM CST 
+ ************************************************************************/  
+  
+#include <stdio.h>  
+#include <unistd.h>  
+#include <string.h>  
+#include <stdlib.h>  
+#include <fcntl.h>  
+  
+int main()  
+{  
+    //打开一个文件  
+    int fd = open("./log", O_CREAT | O_RDWR, 0644);  
+    if(fd < 0)  
+    {  
+        perror("open");  
+        return 1;  
+    }  
+    //关闭标准输出文件描述符  
+    close(1);  
+  
+    //进行重定向  
+    int new_fd = dup(fd); //new_fd = 1  
+    if(new_fd < 0)  
+    {  
+        perror("dup");  
+        return 2;  
+    }  
+    close(fd);  
+  
+    char buf[1024];  
+    while(1)  
+    {  
+        memset(buf, '\0', sizeof(buf));  
+        ssize_t _s = read(0, buf, sizeof(buf) - 1);  
+        if(_s <  0)  
+        {  
+            perror("read");  
+            return 3;  
+        }  
+        else  
+        {  
+            buf[_s] = '\0';  
+        }  
+        if(strncmp("quit", buf, 4) == 0)  
+        {  
+            //退出  
+            break;  
+        }  
+        printf("%s", buf); //将往文件中写入  
+        fflush(stdout); //必须做，因为重定向后printf函数将由行缓冲变为全缓冲  
+        sleep(1);  
+    }  
+    close(new_fd);  
+    return 0;  
+}  
+
+//dup2函数：
+/************************************************************************* 
+    > File Name: dup2.c 
+    > Author: fucang_zxx 
+    > Mail: fucang_zxx@163.com  
+    > Created Time: Thu 28 Jul 2016 04:56:35 PM CST 
+ ************************************************************************/  
+  
+#include <stdio.h>  
+#include <unistd.h>  
+#include <string.h>  
+#include <stdlib.h>  
+#include <fcntl.h>  
+  
+int main()  
+{  
+    //打开一个文件  
+    int fd = open("./log", O_CREAT | O_RDWR, 0644);  
+    if(fd < 0)  
+    {  
+        perror("open");  
+        return 1;  
+    }  
+    //关闭标准输出文件描述符  
+  //  close(1);  //dup2不需要手动关闭，系统会自动关闭  
+  
+    //进行重定向  
+    int new_fd = dup2(fd, 1); //new_fd = 1  
+    if(new_fd < 0)  
+    {  
+        perror("dup2");  
+        return 2;  
+    }  
+    close(fd);  
+  
+    char buf[1024];  
+    while(1)  
+    {  
+        memset(buf, '\0', sizeof(buf));  
+        ssize_t _s = read(0, buf, sizeof(buf) - 1);  
+        if(_s <  0)  
+        {  
+            perror("read");  
+            return 3;  
+        }  
+        else  
+        {  
+            buf[_s] = '\0';  
+        }  
+        if(strncmp("quit", buf, 4) == 0)  
+        {  
+            //退出  
+            break;  
+        }  
+        printf("%s", buf); //将往文件中写入  
+        fflush(stdout); //必须做，因为重定向后printf函数将由行缓冲变为全缓冲  
+        sleep(1);  
+    }  
+    close(new_fd);  
+    return 0;  
+}  
