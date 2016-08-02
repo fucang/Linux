@@ -1,0 +1,140 @@
+/************************************************************************* 
+    > File Name: server.c 
+    > Author: fucang_zxx 
+    > Mail: fucang_zxx@163.com  
+    > Created Time: 2016年07月25日 星期一 13时08分53秒 
+ ************************************************************************/  
+  
+#include<stdio.h>  
+#include <string.h>  
+#include <stdlib.h>  
+#include <sys/types.h>  
+#include <sys/socket.h>  
+#include <sys/un.h>  
+#include <arpa/inet.h>  
+#include <netinet/in.h>  
+  
+const int port = 8080;  
+const char* ip = "192.168.64.128";  
+  
+//服务器端的流程如下：  
+//1）创建套接字（socket）  
+//2）将套接字绑定到一个本地地址和端口上（bind）  
+//3）用返回的套接字和客户端进行通信（recvfrom）  
+//4）返回，等待另一个客户请求  
+//5）关闭套接字  
+int main()  
+{  
+    int ser_sock = socket(AF_INET, SOCK_DGRAM, 0);  
+    if(ser_sock < 0)  
+    {  
+        perror("socket");  
+        return 1;  
+    }  
+    struct sockaddr_in addr;  
+    addr.sin_family = AF_INET;  
+    addr.sin_port = htons(port);  
+    addr.sin_addr.s_addr = inet_addr(ip);  
+    if(bind(ser_sock, (struct sockaddr*)&addr, sizeof(addr)) < 0)  
+    {  
+        perror("bind");  
+        return 2;  
+    }  
+    struct sockaddr_in remote;  
+    socklen_t len = sizeof(remote);  
+    char buf[1024];  
+    while(1)  
+    {  
+        memset(buf, '\0', sizeof(buf));  
+        ssize_t size = recvfrom(ser_sock, buf, sizeof(buf) - 1, 0, (struct sockaddr*)&remote, &len);  
+        if(size < 0)  
+        {  
+            perror("recvfrom");  
+            return 3;  
+        }  
+        buf[size] = '\0';  
+        printf("client:# %s\n", buf);  
+        printf("server please enter: ");  
+        fflush(stdout);  
+        size = read(0, buf, sizeof(buf) - 1);  
+        if(size < 0)  
+        {  
+            perror("read");  
+            return 4;  
+        }  
+        buf[size - 1] = '\0';  
+        sendto(ser_sock, buf, strlen(buf), 0, (struct sockaddr*)&remote, len);  
+    }  
+    close(ser_sock);  
+    return 0;  
+  
+}  
+
+//client端：
+/************************************************************************* 
+    > File Name: client.c 
+    > Author: fucang_zxx 
+    > Mail: fucang_zxx@163.com  
+    > Created Time: 2016年07月25日 星期一 13时08分53秒 
+ ************************************************************************/  
+  
+#include <stdio.h>  
+#include <string.h>  
+#include <stdlib.h>  
+#include <sys/types.h>  
+#include <sys/socket.h>  
+#include <sys/un.h>  
+#include <arpa/inet.h>  
+#include <netinet/in.h>  
+  
+const int port = 8080;  
+const char* ip = "192.168.64.128";  
+  
+int main()  
+{  
+    int clt_sock = socket(AF_INET, SOCK_DGRAM, 0);  
+    if(clt_sock < 0)  
+    {  
+        perror("socket");  
+        return 1;  
+    }  
+    struct sockaddr_in addr;  
+    addr.sin_family = AF_INET;  
+    addr.sin_port = htons(port);  
+    addr.sin_addr.s_addr = inet_addr(ip);  
+    socklen_t len = sizeof(addr);  
+  
+//  int connect_fd = connect(clt_sock, (struct sockaddr*)&addr, len);  
+  
+    char buf[1024];  
+    while(1)  
+    {  
+        memset(buf, '\0', sizeof(buf));  
+        printf("client please enter: ");  
+        fflush(stdout);  
+        ssize_t size = read(0, buf, sizeof(buf) - 1);  
+        if(size < 0)  
+        {  
+            perror("read");  
+            return 2;  
+        }  
+        buf[size - 1] = '\0';  
+        sendto(clt_sock, buf,strlen(buf), 0, (struct sockaddr*)&addr, len);  
+  
+        printf("server:# %s\n", buf);  
+        size = recvfrom(clt_sock, buf, sizeof(buf) - 1, 0, (struct sockaddr*)&addr, &len);  
+        if(size < 0)  
+        {  
+            perror("recvfrom");  
+            return 3;  
+        }  
+        else   
+        {  
+            buf[size] = '\0';  
+            printf("server:# %s\n", buf);  
+        }  
+    }  
+    close(clt_sock);  
+    return 0;  
+  
+}  
